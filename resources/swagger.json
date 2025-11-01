@@ -1,0 +1,723 @@
+{
+  "openapi": "3.0.0",
+  "info": {
+    "title": "Assistente de Triagem Médica Inteligente",
+    "version": "1.0.0",
+    "description": "API para gerenciamento de clínica, pacientes, médicos, sintomas e agendamentos."
+  },
+  "servers": [
+    { "url": "http://localhost:3000" }
+  ],
+  "components": {
+    "securitySchemes": {
+      "bearerAuth": {
+        "type": "http",
+        "scheme": "bearer",
+        "bearerFormat": "JWT"
+      }
+    },
+    "schemas": {
+      "ClinicUserResponse": {
+        "type": "object",
+        "properties": {
+          "id": { "type": "string" },
+          "name": { "type": "string" },
+          "email": { "type": "string" }
+        }
+      },
+      "PatientResponse": {
+        "type": "object",
+        "properties": {
+          "id": { "type": "string" },
+          "name": { "type": "string" },
+          "birthdate": { "type": "string", "format": "date" },
+          "clinicUserId": { "type": "string" }
+        }
+      },
+      "DoctorResponse": {
+        "type": "object",
+        "properties": {
+          "id": { "type": "string" },
+          "name": { "type": "string" },
+          "specialty": { "type": "string" }
+        }
+      },
+      "SymptomResponse": {
+        "type": "object",
+        "properties": {
+          "id": { "type": "string" },
+          "name": { "type": "string" },
+          "description": { "type": "string" },
+          "specialty": { "type": "string" }
+        }
+      },
+      "AppointmentResponse": {
+        "type": "object",
+        "properties": {
+          "id": { "type": "string" },
+          "patientId": { "type": "string" },
+          "doctorId": { "type": "string" },
+          "date": { "type": "string", "format": "date-time" }
+        }
+      }
+    }
+  },
+  "security": [
+    { "bearerAuth": [] }
+  ],
+  "paths": {
+    "/api/clinic-users/register": {
+      "post": {
+        "tags": ["Usuários da Clínica"],
+        "summary": "Registrar usuário da clínica",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "name": { "type": "string" },
+                  "email": { "type": "string" },
+                  "password": { "type": "string" }
+                },
+                "required": ["name", "email", "password"]
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Usuário criado",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ClinicUserResponse"
+                }
+              }
+            }
+          },
+          "409": { "description": "Usuário já cadastrado" },
+          "400": { "description": "Dados inválidos" }
+        }
+      }
+    },
+    "/api/clinic-users/login": {
+      "post": {
+        "tags": ["Usuários da Clínica"],
+        "summary": "Login do usuário da clínica",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "email": { "type": "string" },
+                  "password": { "type": "string" }
+                },
+                "required": ["email", "password"]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Login bem-sucedido",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "token": { "type": "string" }
+                  }
+                }
+              }
+            }
+          },
+          "401": { "description": "Usuário não encontrado ou senha inválida" }
+        }
+      }
+    },
+    "/api/clinic-users": {
+      "get": {
+        "tags": ["Usuários da Clínica"],
+        "summary": "Listar usuários da clínica",
+        "security": [{ "bearerAuth": [] }],
+        "responses": {
+          "200": {
+            "description": "Lista de usuários",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": { "$ref": "#/components/schemas/ClinicUserResponse" }
+                }
+              }
+            }
+          },
+          "401": { "description": "Token não fornecido ou inválido" }
+        }
+      }
+    },
+    "/api/clinic-users/{id}": {
+      "get": {
+        "tags": ["Usuários da Clínica"],
+        "summary": "Consultar usuário da clínica por ID",
+        "security": [{ "bearerAuth": [] }],
+        "parameters": [
+          { "name": "id", "in": "path", "required": true, "schema": { "type": "string" } }
+        ],
+        "responses": {
+          "200": {
+            "description": "Usuário encontrado",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/ClinicUserResponse" }
+              }
+            }
+          },
+          "404": { "description": "Usuário não encontrado" },
+          "401": { "description": "Token não fornecido ou inválido" }
+        }
+      },
+      "put": {
+        "tags": ["Usuários da Clínica"],
+        "summary": "Editar usuário da clínica",
+        "security": [{ "bearerAuth": [] }],
+        "parameters": [
+          { "name": "id", "in": "path", "required": true, "schema": { "type": "string" } }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "name": { "type": "string" },
+                  "email": { "type": "string" }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Usuário atualizado",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/ClinicUserResponse" }
+              }
+            }
+          },
+          "404": { "description": "Usuário não encontrado" },
+          "401": { "description": "Token não fornecido ou inválido" }
+        }
+      },
+      "delete": {
+        "tags": ["Usuários da Clínica"],
+        "summary": "Excluir usuário da clínica",
+        "security": [{ "bearerAuth": [] }],
+        "parameters": [
+          { "name": "id", "in": "path", "required": true, "schema": { "type": "string" } }
+        ],
+        "responses": {
+          "204": { "description": "Usuário excluído" },
+          "404": { "description": "Usuário não encontrado" },
+          "401": { "description": "Token não fornecido ou inválido" }
+        }
+      }
+    },
+    "/api/patients": {
+      "post": {
+        "tags": ["Pacientes"],
+        "summary": "Registrar paciente",
+        "security": [{ "bearerAuth": [] }],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "name": { "type": "string" },
+                  "birthdate": { "type": "string", "format": "date" },
+                  "clinicUserId": { "type": "string" }
+                },
+                "required": ["name", "birthdate", "clinicUserId"]
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Paciente criado",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/PatientResponse" }
+              }
+            }
+          },
+          "400": { "description": "Dados inválidos" },
+          "401": { "description": "Token não fornecido ou inválido" }
+        }
+      },
+      "get": {
+        "tags": ["Pacientes"],
+        "summary": "Listar pacientes",
+        "security": [{ "bearerAuth": [] }],
+        "responses": {
+          "200": {
+            "description": "Lista de pacientes",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": { "$ref": "#/components/schemas/PatientResponse" }
+                }
+              }
+            }
+          },
+          "401": { "description": "Token não fornecido ou inválido" }
+        }
+      }
+    },
+    "/api/patients/{id}": {
+      "get": {
+        "tags": ["Pacientes"],
+        "summary": "Consultar paciente por ID",
+        "security": [{ "bearerAuth": [] }],
+        "parameters": [
+          { "name": "id", "in": "path", "required": true, "schema": { "type": "string" } }
+        ],
+        "responses": {
+          "200": {
+            "description": "Paciente encontrado",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/PatientResponse" }
+              }
+            }
+          },
+          "404": { "description": "Paciente não encontrado" },
+          "401": { "description": "Token não fornecido ou inválido" }
+        }
+      },
+      "put": {
+        "tags": ["Pacientes"],
+        "summary": "Editar paciente",
+        "security": [{ "bearerAuth": [] }],
+        "parameters": [
+          { "name": "id", "in": "path", "required": true, "schema": { "type": "string" } }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "name": { "type": "string" },
+                  "birthdate": { "type": "string", "format": "date" }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Paciente atualizado",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/PatientResponse" }
+              }
+            }
+          },
+          "404": { "description": "Paciente não encontrado" },
+          "401": { "description": "Token não fornecido ou inválido" }
+        }
+      },
+      "delete": {
+        "tags": ["Pacientes"],
+        "summary": "Excluir paciente",
+        "security": [{ "bearerAuth": [] }],
+        "parameters": [
+          { "name": "id", "in": "path", "required": true, "schema": { "type": "string" } }
+        ],
+        "responses": {
+          "204": { "description": "Paciente excluído" },
+          "404": { "description": "Paciente não encontrado" },
+          "401": { "description": "Token não fornecido ou inválido" }
+        }
+      }
+    },
+    "/api/doctors": {
+      "post": {
+        "tags": ["Médicos"],
+        "summary": "Registrar médico",
+        "security": [{ "bearerAuth": [] }],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "name": { "type": "string" },
+                  "specialty": { "type": "string" }
+                },
+                "required": ["name", "specialty"]
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Médico criado",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/DoctorResponse" }
+              }
+            }
+          },
+          "400": { "description": "Dados inválidos" },
+          "401": { "description": "Token não fornecido ou inválido" }
+        }
+      },
+      "get": {
+        "tags": ["Médicos"],
+        "summary": "Listar médicos",
+        "security": [{ "bearerAuth": [] }],
+        "responses": {
+          "200": {
+            "description": "Lista de médicos",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": { "$ref": "#/components/schemas/DoctorResponse" }
+                }
+              }
+            }
+          },
+          "401": { "description": "Token não fornecido ou inválido" }
+        }
+      }
+    },
+    "/api/doctors/{id}": {
+      "get": {
+        "tags": ["Médicos"],
+        "summary": "Consultar médico por ID",
+        "security": [{ "bearerAuth": [] }],
+        "parameters": [
+          { "name": "id", "in": "path", "required": true, "schema": { "type": "string" } }
+        ],
+        "responses": {
+          "200": {
+            "description": "Médico encontrado",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/DoctorResponse" }
+              }
+            }
+          },
+          "404": { "description": "Médico não encontrado" },
+          "401": { "description": "Token não fornecido ou inválido" }
+        }
+      },
+      "put": {
+        "tags": ["Médicos"],
+        "summary": "Editar médico",
+        "security": [{ "bearerAuth": [] }],
+        "parameters": [
+          { "name": "id", "in": "path", "required": true, "schema": { "type": "string" } }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "name": { "type": "string" },
+                  "specialty": { "type": "string" }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Médico atualizado",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/DoctorResponse" }
+              }
+            }
+          },
+          "404": { "description": "Médico não encontrado" },
+          "401": { "description": "Token não fornecido ou inválido" }
+        }
+      },
+      "delete": {
+        "tags": ["Médicos"],
+        "summary": "Excluir médico",
+        "security": [{ "bearerAuth": [] }],
+        "parameters": [
+          { "name": "id", "in": "path", "required": true, "schema": { "type": "string" } }
+        ],
+        "responses": {
+          "204": { "description": "Médico excluído" },
+          "404": { "description": "Médico não encontrado" },
+          "401": { "description": "Token não fornecido ou inválido" }
+        }
+      }
+    },
+    "/api/symptoms": {
+      "post": {
+        "tags": ["Sintomas"],
+        "summary": "Registrar sintoma",
+        "security": [{ "bearerAuth": [] }],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "name": { "type": "string" },
+                  "description": { "type": "string" },
+                  "specialty": { "type": "string" }
+                },
+                "required": ["name", "description", "specialty"]
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Sintoma criado",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/SymptomResponse" }
+              }
+            }
+          },
+          "400": { "description": "Dados inválidos" },
+          "401": { "description": "Token não fornecido ou inválido" }
+        }
+      },
+      "get": {
+        "tags": ["Sintomas"],
+        "summary": "Listar sintomas",
+        "security": [{ "bearerAuth": [] }],
+        "responses": {
+          "200": {
+            "description": "Lista de sintomas",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": { "$ref": "#/components/schemas/SymptomResponse" }
+                }
+              }
+            }
+          },
+          "401": { "description": "Token não fornecido ou inválido" }
+        }
+      }
+    },
+    "/api/symptoms/{id}": {
+      "get": {
+        "tags": ["Sintomas"],
+        "summary": "Consultar sintoma por ID",
+        "security": [{ "bearerAuth": [] }],
+        "parameters": [
+          { "name": "id", "in": "path", "required": true, "schema": { "type": "string" } }
+        ],
+        "responses": {
+          "200": {
+            "description": "Sintoma encontrado",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/SymptomResponse" }
+              }
+            }
+          },
+          "404": { "description": "Sintoma não encontrado" },
+          "401": { "description": "Token não fornecido ou inválido" }
+        }
+      },
+      "put": {
+        "tags": ["Sintomas"],
+        "summary": "Editar sintoma",
+        "security": [{ "bearerAuth": [] }],
+        "parameters": [
+          { "name": "id", "in": "path", "required": true, "schema": { "type": "string" } }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "name": { "type": "string" },
+                  "description": { "type": "string" },
+                  "specialty": { "type": "string" }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Sintoma atualizado",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/SymptomResponse" }
+              }
+            }
+          },
+          "404": { "description": "Sintoma não encontrado" },
+          "401": { "description": "Token não fornecido ou inválido" }
+        }
+      },
+      "delete": {
+        "tags": ["Sintomas"],
+        "summary": "Excluir sintoma",
+        "security": [{ "bearerAuth": [] }],
+        "parameters": [
+          { "name": "id", "in": "path", "required": true, "schema": { "type": "string" } }
+        ],
+        "responses": {
+          "204": { "description": "Sintoma excluído" },
+          "404": { "description": "Sintoma não encontrado" },
+          "401": { "description": "Token não fornecido ou inválido" }
+        }
+      }
+    },
+    "/api/symptoms/{id}/specialists": {
+      "get": {
+        "tags": ["Sintomas"],
+        "summary": "Consultar especialistas por sintoma",
+        "security": [{ "bearerAuth": [] }],
+        "parameters": [
+          { "name": "id", "in": "path", "required": true, "schema": { "type": "string" } }
+        ],
+        "responses": {
+          "200": {
+            "description": "Lista de especialistas",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": { "$ref": "#/components/schemas/DoctorResponse" }
+                }
+              }
+            }
+          },
+          "404": { "description": "Sintoma não encontrado" },
+          "401": { "description": "Token não fornecido ou inválido" }
+        }
+      }
+    },
+    "/api/appointments": {
+      "post": {
+        "tags": ["Agendamentos"],
+        "summary": "Agendar consulta médica",
+        "security": [{ "bearerAuth": [] }],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "patientId": { "type": "string" },
+                  "doctorId": { "type": "string" },
+                  "date": { "type": "string", "format": "date-time" }
+                },
+                "required": ["patientId", "doctorId", "date"]
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Consulta agendada",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/AppointmentResponse" }
+              }
+            }
+          },
+          "400": { "description": "Dados inválidos" },
+          "401": { "description": "Token não fornecido ou inválido" }
+        }
+      },
+      "get": {
+        "tags": ["Agendamentos"],
+        "summary": "Listar agendamentos",
+        "security": [{ "bearerAuth": [] }],
+        "responses": {
+          "200": {
+            "description": "Lista de agendamentos",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": { "$ref": "#/components/schemas/AppointmentResponse" }
+                }
+              }
+            }
+          },
+          "401": { "description": "Token não fornecido ou inválido" }
+        }
+      }
+    },
+    "/api/appointments/{id}": {
+      "get": {
+        "tags": ["Agendamentos"],
+        "summary": "Consultar agendamento por ID",
+        "security": [{ "bearerAuth": [] }],
+        "parameters": [
+          { "name": "id", "in": "path", "required": true, "schema": { "type": "string" } }
+        ],
+        "responses": {
+          "200": {
+            "description": "Agendamento encontrado",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/AppointmentResponse" }
+              }
+            }
+          },
+          "404": { "description": "Agendamento não encontrado" },
+          "401": { "description": "Token não fornecido ou inválido" }
+        }
+      },
+      "delete": {
+        "tags": ["Agendamentos"],
+        "summary": "Excluir agendamento",
+        "security": [{ "bearerAuth": [] }],
+        "parameters": [
+          { "name": "id", "in": "path", "required": true, "schema": { "type": "string" } }
+        ],
+        "responses": {
+          "204": { "description": "Agendamento excluído" },
+          "404": { "description": "Agendamento não encontrado" },
+          "401": { "description": "Token não fornecido ou inválido" }
+        }
+      }
+    }
+  },
+  "tags": [
+    { "name": "Usuários da Clínica" },
+    { "name": "Pacientes" },
+    { "name": "Médicos" },
+    { "name": "Sintomas" },
+    { "name": "Agendamentos" }
+  ]
+}
